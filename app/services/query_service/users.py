@@ -4,6 +4,8 @@ from fastapi import HTTPException
 from database import UsersModel
 from schemas import UserCreate, UserResponse
 
+from core import jwt_ver
+
 
 
 class UsersRequests:
@@ -15,7 +17,8 @@ class UsersRequests:
     async def get_user(
         self, 
         id: int
-    ):
+    ) -> UsersModel:
+        
         result = await self.session.execute(
             select(UsersModel)
             .where(UsersModel.id==id)
@@ -24,8 +27,8 @@ class UsersRequests:
 
         if user is None:
             raise HTTPException(
-                status_code=404,
-                detail='User not found'
+                status_code=401,
+                detail='Could not validate credentials'
             )
 
         return user
@@ -35,6 +38,7 @@ class UsersRequests:
         self, 
         user: UserCreate
     ) -> UserResponse:
+        
         result = await self.session.execute(
             select(UsersModel)
             .where(UsersModel.email==user.email)
@@ -42,11 +46,18 @@ class UsersRequests:
         this_user = result.scalars().first()
 
         if this_user:
-            raise HTTPException(status_code=400, detail='This Email not varify')
+            raise HTTPException(
+                status_code=400,
+                detail='This email address is already registered'
+                )
         
         new_user = UsersModel(
-            **user.model_dump()
-        )
+            name=user.name,
+            email=user.email,
+            hashed_password=jwt_ver.get_hash_psw(
+                user.hashed_password
+                )
+            )
 
         self.session.add(new_user)
         await self.session.commit()
@@ -54,4 +65,23 @@ class UsersRequests:
 
         return new_user
 
+
+    async def get_email(
+        self, 
+        email: str
+    ) -> UsersModel:
+        
+        result = await self.session.execute(
+            select(UsersModel)
+            .where(UsersModel.email==email)
+            )
+        email = result.scalars().first()
+
+        if email:
+            return email
+        
+        return HTTPException(
+            status_code=400,
+            detail='This Email not found'
+        )
 

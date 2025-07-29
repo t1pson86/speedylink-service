@@ -3,8 +3,8 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from typing import Optional
 
-from ..core import jwt_settings
-from ..schemas import TokenPayload
+from .configuration import jwt_settings
+from schemas import TokenPayload
 
 
 class JWT_verification():
@@ -92,3 +92,6 @@ class JWT_verification():
             return TokenPayload(**payload)
         except JWTError as e:
             raise e
+
+
+jwt_ver = JWT_verification()

@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..base_repository import BaseRepository
-from schemas import UserCreate
+from schemas import UserCreate, UserResponse
 from services import UsersRequests
 from database import get_new_async_session
 from fastapi import Depends
@@ -35,5 +35,12 @@ class UserRepository(BaseRepository[UserCreate]):
     
     async def delete(self, id):
         return 'ok'
+    
+    async def get_user_by_email(
+        self, 
+        email: str
+    ) -> UserResponse:
+        
+        return await self.user_requests.get_user_email(email)
 
         
