@@ -19,6 +19,7 @@ class AuthDep:
             session=session
             )
 
+
     async def get_current_user(
         self, 
         token: str = Depends(oauth_schem2)
@@ -36,14 +37,14 @@ class AuthDep:
             if payload.sub is None:
                 raise credentials_exception
             
-            current_user = self.user_repo.read(
+            current_user = await self.user_repo.read(
                 id = int(payload.sub)
             )
 
             return current_user
 
         except JWTError:
-            raise 
+            raise credentials_exception
         
 
 

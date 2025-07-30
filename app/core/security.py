@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from typing import Optional
+from fastapi import HTTPException
 
 from .configuration import jwt_settings
 from schemas import TokenPayload
@@ -30,10 +31,18 @@ class JWT_verification():
         hashed_password: str
     ) -> bool:
 
-        return self.pwd_context.verify(
+        if not self.pwd_context.verify(
             plain_password,
             hashed_password
-        )
+            ):
+
+            raise HTTPException(
+                status_code=400,
+                detail="Incorrect email or password"
+            )
+
+        return True
+
 
 
     def create_access_token(
@@ -57,7 +66,7 @@ class JWT_verification():
         )
 
 
-    def create_access_token(
+    def create_refresh_token(
         self,
         data: dict,
         expires_delta: Optional[timedelta] = None
