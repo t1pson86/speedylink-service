@@ -1,51 +1,89 @@
-from fastapi.security import OAuth2PasswordBearer
-from fastapi import Depends, HTTPException, status
-from jose import JWTError
-from database import UserRepository, get_new_async_session
+from fastapi import Depends, HTTPException, status, Response
 from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import timedelta
+from schemas import TokenBase
 
-from core import jwt_ver
+from database import UserRepository, get_new_async_session
+from core import jwt_settings, jwt_ver
+from .cookie import CookieDep
 
 
-oauth_schem2 = OAuth2PasswordBearer(
-            tokenUrl='/api/v1/auth/login',
-            scheme_name='JWT'
+
+class AuthService:
+
+    def __init__(self, response: Response, session: AsyncSession = Depends(get_new_async_session)):
+        self.session = session
+        self.cookie_dep = CookieDep(
+            response=response
         )
-
-class AuthDep:
-
-    def __init__(self, session: AsyncSession = Depends(get_new_async_session)):
         self.user_repo = UserRepository(
             session=session
-            )
-
-
-    async def get_current_user(
-        self, 
-        token: str = Depends(oauth_schem2)
-    ):
-        credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+    async def authenticate_user(
+        self, 
+        email: str, 
+        password: str
+    ):
         try:
-            payload = jwt_ver.decode_token(
-                token=token
+            user = await self.user_repo.get_user_by_email(
+                email=email
+                )
+
+            password_verify = jwt_ver.get_verify_psw(
+                password,
+                user.hashed_password
             )
+            if not user.is_active:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, 
+                    detail="Inactive user"
+                )
 
-            if payload.sub is None:
-                raise credentials_exception
-            
-            current_user = await self.user_repo.read(
-                id = int(payload.sub)
-            )
-
-            return current_user
-
-        except JWTError:
-            raise credentials_exception
+            return user
         
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid email or password"
+            )
+    
+    
+    async def create_tokens(
+        self,
+        user_id: int
+    ):
+        
+        access_token_expires = timedelta(
+            minutes=jwt_settings.ACCESS_TOKEN_EXPIRE_MINUTES
+            )
+        
+        access_token = jwt_ver.create_access_token(
+            data={"sub": str(user_id)},
+            expires_delta=access_token_expires
+        )
+        
+        refresh_token_expires = timedelta(
+            minutes=jwt_settings.REFRESH_TOKEN_EXPIRE_DAYS
+            )
+        
+        refresh_token = jwt_ver.create_refresh_token(
+            data={"sub": str(user_id)},
+            expires_delta=refresh_token_expires
+        )
+
+        self.cookie_dep.set_access_token_cookie(access_token)
+        self.cookie_dep.set_refresh_token_cookie(refresh_token)
+
+        return TokenBase(
+            access_token=access_token,
+            token_type='bearer',
+            refresh_token=refresh_token
+        )
+
+
+
 
 
 

@@ -88,6 +88,7 @@ class JWT_verification():
     
 
     def decode_token(
+        self,
         token: str
     ) -> TokenPayload:
         

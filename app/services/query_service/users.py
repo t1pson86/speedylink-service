@@ -52,10 +52,10 @@ class UsersRequests:
                 )
         
         new_user = UsersModel(
-            name=user.name,
-            email=user.email,
+            name=user.name.strip(),
+            email=user.email.strip(),
             hashed_password=jwt_ver.get_hash_psw(
-                user.hashed_password
+                user.hashed_password.strip()
                 )
             )
 
@@ -69,19 +69,12 @@ class UsersRequests:
     async def get_email(
         self, 
         email: str
-    ) -> UsersModel:
+    ) -> UserResponse | None:
         
         result = await self.session.execute(
             select(UsersModel)
             .where(UsersModel.email==email)
             )
-        email = result.scalars().first()
+        return result.scalars().first()
 
-        if email:
-            return email
-        
-        return HTTPException(
-            status_code=400,
-            detail='This Email not found'
-        )
 
