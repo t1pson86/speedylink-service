@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status, Response
+from fastapi import Depends, HTTPException, status, Response, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
 from schemas import TokenBase
@@ -11,10 +11,11 @@ from .cookie import CookieDep
 
 class AuthService:
 
-    def __init__(self, response: Response, session: AsyncSession = Depends(get_new_async_session)):
+    def __init__(self, response: Response, request: Request, session: AsyncSession = Depends(get_new_async_session)):
         self.session = session
         self.cookie_dep = CookieDep(
-            response=response
+            response=response,
+            request=request
         )
         self.user_repo = UserRepository(
             session=session
@@ -81,9 +82,5 @@ class AuthService:
             token_type='bearer',
             refresh_token=refresh_token
         )
-
-
-
-
 
 

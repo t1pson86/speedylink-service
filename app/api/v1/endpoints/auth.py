@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from schemas import TokenBase
 
 from schemas import UserCreate, UserResponse
 from database import UserRepository
-from api.dependencies import AuthService
+from api.dependencies import AuthService, delete_current_user
 
 router = APIRouter()
 
@@ -32,3 +32,12 @@ async def login(
     data_token = await auth_service.create_tokens(user_id=user.id)
 
     return data_token
+
+
+
+@router.post('/logout')
+async def logout(
+    token_del: dict = Depends(delete_current_user)
+):
+    
+    return token_del

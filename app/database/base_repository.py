@@ -12,7 +12,6 @@ class BaseRepository(ABC, Generic[T]):
 
 
     @abstractmethod
-
     async def create(
         self, 
         entity: T

@@ -35,7 +35,7 @@ class Oauth2CookieBearer(OAuth2):
                 if not refresh_token:
                     raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail="Not authenticated (no access token in cookies)",
+                        detail="Not authenticated (no refresh token in cookies)",
                     )
                 
                 payload = jwt_ver.decode_token(
@@ -51,7 +51,8 @@ class Oauth2CookieBearer(OAuth2):
                 )
 
                 cookie_dep = CookieDep(
-                    response=response
+                    response=response,
+                    request=request
                 )
 
                 cookie_dep.set_access_token_cookie(
@@ -101,3 +102,43 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
     
+
+
+async def delete_current_user(
+        response: Response,
+        request: Request,
+        session: AsyncSession = Depends(get_new_async_session),
+        token: str = Depends(Oauth2Cookie_scheme)
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+    )
+
+    try:
+        payload = jwt_ver.decode_token(
+            token = token
+        )
+
+        if payload.sub is None:
+            raise credentials_exception
+        
+        user_repo = UserRepository(
+            session=session
+        )
+
+        current_user = await user_repo.read(
+            id = int(payload.sub)
+        )
+
+        cookie_dep = CookieDep(
+            response = response,
+            request=request
+        )
+
+        cookie_dep.delete_tokens()
+
+        return {"message": "Logout True"}
+
+    except Exception:
+        raise credentials_exception

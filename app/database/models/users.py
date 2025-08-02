@@ -12,6 +12,8 @@ class UsersModel(Base):
     is_active: Mapped[bool] = mapped_column(nullable=False, default=True)
     is_superuser: Mapped[bool] = mapped_column(nullable=False, default=False)
 
+    links: Mapped[list["LinksModel"]] = relationship(back_populates="user")
+
 
 
 
