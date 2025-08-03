@@ -45,7 +45,7 @@ class Oauth2CookieBearer(OAuth2):
                 if payload.sub is None:
                     raise credentials_exception
                 
-                new_access_token = jwt_ver.create_refresh_token(
+                new_access_token = jwt_ver.create_access_token(
                     data={"sub": str(payload.sub)},
                     expires_delta=timedelta(minutes=jwt_settings.ACCESS_TOKEN_EXPIRE_MINUTES)
                 )
@@ -59,14 +59,15 @@ class Oauth2CookieBearer(OAuth2):
                     access_token = new_access_token
                 )
 
-                return refresh_token
+                return new_access_token
 
 
-            except Exception:
+            except Exception as e:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Could not validate credentials",
                 )
+
     
 
 Oauth2Cookie_scheme = Oauth2CookieBearer()
@@ -86,6 +87,7 @@ async def get_current_user(
         payload = jwt_ver.decode_token(
             token
         )
+
 
         if payload.sub is None:
             raise credentials_exception

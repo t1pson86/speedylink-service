@@ -1,4 +1,3 @@
-import secrets
 import os
 
 from pydantic_settings import BaseSettings
@@ -24,7 +23,7 @@ db_settings = DbSettings()
 
 class JWTSettings(BaseSettings):
 
-    JWT_SECRET_KEY: str = secrets.token_urlsafe(64)
+    JWT_SECRET_KEY: str = os.getenv('SCR_KEY')
     JWT_ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_DAYS: int

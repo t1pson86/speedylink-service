@@ -1,6 +1,7 @@
-
+from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, update, delete
+
 
 from database import LinksModel
 from schemas import LinkCreate
@@ -16,14 +17,26 @@ class LinksRequests:
         self,
         link: LinkCreate,
         user_id: int
-    ) -> LinksModel:
+    ):
 
         new_link = LinksModel(
             long_url=str(link.long_url),
+            short_url='7777777777',
             user_id=user_id
         )
 
         self.session.add(new_link)
         await self.session.commit()
 
-        return new_link
+        html_content = f"""
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>FastAPI HTML</title>
+        </head>
+        <body>
+            <h1>Hello from FastAPI!</h1>
+        </body>
+    </html>
+        """
+        return HTMLResponse(content=html_content, status_code=200)

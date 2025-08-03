@@ -8,6 +8,7 @@ class CookieDep():
     def __init__(self, response: Response, request: Request):
         self.response = response
         self.request = request
+        
     def set_access_token_cookie(self, access_token: str):
         if self.request.cookies.get("access_token"):
             raise HTTPException(
@@ -45,9 +46,13 @@ class CookieDep():
     
     
     def delete_tokens(self):
-        self.response.delete_cookie(
+        if self.request.cookies.get(
             "access_token"
-        )
+        ):
+            self.response.delete_cookie(
+                "access_token"
+            )
+            
         self.response.delete_cookie(
             "refresh_token"
         )
