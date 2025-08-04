@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+# -- DATABASE SETTINGS -- 
 class DbSettings(BaseSettings):
 
     DB_USER: str = os.getenv('DB_USER')
@@ -21,6 +23,8 @@ class DbSettings(BaseSettings):
 db_settings = DbSettings()
 
 
+
+# -- JWT SETTINGS --
 class JWTSettings(BaseSettings):
 
     JWT_SECRET_KEY: str = os.getenv('SCR_KEY')
@@ -30,5 +34,6 @@ class JWTSettings(BaseSettings):
     
     class Config:
         env_file = ".env"
+
 
 jwt_settings = JWTSettings()

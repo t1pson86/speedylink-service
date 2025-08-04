@@ -1,7 +1,5 @@
 from fastapi import Response, Request, HTTPException, status
 
-from schemas import TokenBase 
-
 
 class CookieDep():
 
@@ -21,7 +19,7 @@ class CookieDep():
             httponly=True,     
             secure=True,         
             samesite="lax",
-            max_age=30
+            max_age=1800
         )
         return True
     

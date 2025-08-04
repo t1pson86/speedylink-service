@@ -22,7 +22,7 @@ class LinkRepository(BaseRepository[LinkCreate]):
         self,
         link: LinkCreate,
         user_id: int
-    ):
+    ) -> str:
         return await self.links_requests.add_link(
             link=link,
             user_id=user_id
@@ -30,10 +30,14 @@ class LinkRepository(BaseRepository[LinkCreate]):
         
         
     async def read(
-        self
+        self,
+        short_url: str
     ):
-        return 'ok'
         
+        return await self.links_requests.get_redirect_url(
+            short_url = short_url
+        )
+
 
     async def update(self, link):
         return 'ok'

@@ -16,12 +16,12 @@ class Oauth2CookieBearer(OAuth2):
         try:
             access_token = request.cookies.get("access_token")
 
-            if not access_token:
+            if access_token is None:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Not authenticated (no access token in cookies)",
                 )
-        
+            
             return access_token
         
         except Exception:
@@ -49,7 +49,7 @@ class Oauth2CookieBearer(OAuth2):
                     data={"sub": str(payload.sub)},
                     expires_delta=timedelta(minutes=jwt_settings.ACCESS_TOKEN_EXPIRE_MINUTES)
                 )
-
+                
                 cookie_dep = CookieDep(
                     response=response,
                     request=request
